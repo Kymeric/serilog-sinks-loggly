@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Loggly;
 using SyslogLevel = Loggly.Transports.Syslog.Level;
 using Loggly.Config;
@@ -56,6 +55,7 @@ namespace Serilog.Sinks.Loggly
             {
                 return new
                 {
+                    Type = exception.GetType().Name,
                     exception.Message,
                     exception.Source,
                     exception.StackTrace,
@@ -64,6 +64,7 @@ namespace Serilog.Sinks.Loggly
             }
             return new
             {
+                Type = exception.GetType().Name,
                 exception.Message,
                 exception.Source,
                 exception.StackTrace
