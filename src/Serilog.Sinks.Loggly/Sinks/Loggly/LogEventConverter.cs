@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Loggly;
 using SyslogLevel = Loggly.Transports.Syslog.Level;
 using Loggly.Config;
@@ -26,8 +27,7 @@ namespace Serilog.Sinks.Loggly
 
             var isHttpTransport = LogglyConfig.Instance.Transport.LogTransport == LogTransport.Https;
             logglyEvent.Syslog.Level = ToSyslogLevel(logEvent);
-
-
+            
             logglyEvent.Data.AddIfAbsent("Message", logEvent.RenderMessage(_formatProvider));
 
             foreach (var key in logEvent.Properties.Keys)
@@ -45,11 +45,30 @@ namespace Serilog.Sinks.Loggly
 
             if (logEvent.Exception != null)
             {
-                logglyEvent.Data.AddIfAbsent("Exception", logEvent.Exception);
+                logglyEvent.Data.AddIfAbsent("Exception", ConvertException(logEvent.Exception));
             }
             return logglyEvent;
         }
 
+        private static object ConvertException(Exception exception)
+        {
+            if (exception.InnerException != null)
+            {
+                return new
+                {
+                    exception.Message,
+                    exception.Source,
+                    exception.StackTrace,
+                    InnerException = ConvertException(exception.InnerException)
+                };
+            }
+            return new
+            {
+                exception.Message,
+                exception.Source,
+                exception.StackTrace
+            };
+        }
 
         static SyslogLevel ToSyslogLevel(LogEvent logEvent)
         {
